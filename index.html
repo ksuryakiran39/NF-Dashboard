@@ -418,14 +418,33 @@ const regime2h = v => v.every(x=>x>70)?'bull':v.every(x=>x<30)?'bear':'notrade';
 function phase10m(vals, reg) {
   if(reg==='notrade') return 'na';
   const avg = vals.reduce((a,b)=>a+b,0)/3;
+
   if(reg==='bull') {
+    // pullback: all near 0
     if(vals.every(v=>v<=10)) return 'pullback';
-    if(vals.every(v=>v>25))  return avg>60?'hold':'trigger';
+    // crossed back above 25 — now in trigger/hold territory
+    if(vals.every(v=>v>25)) {
+      // EXIT: we are in hold (avg high) but at least ONE bee has started falling back down
+      // divergence = avg was high but is now dropping, or any single bee is materially below the others
+      const maxV = Math.max(...vals);
+      const minV = Math.min(...vals);
+      if(avg>40 && (minV < avg - 15)) return 'exit'; // one bee diverging downward from the group
+      return avg>60 ? 'hold' : 'trigger';
+    }
     return 'trend';
   }
+
   if(reg==='bear') {
+    // pullback: all near 100
     if(vals.every(v=>v>=90)) return 'pullback';
-    if(vals.every(v=>v<75))  return avg<40?'hold':'trigger';
+    // crossed back below 75 — now in trigger/hold territory
+    if(vals.every(v=>v<75)) {
+      // EXIT: we are in hold (avg low) but at least ONE bee has started rising back up
+      const maxV = Math.max(...vals);
+      const minV = Math.min(...vals);
+      if(avg<60 && (maxV > avg + 15)) return 'exit'; // one bee diverging upward from the group
+      return avg<40 ? 'hold' : 'trigger';
+    }
     return 'trend';
   }
   return 'na';
@@ -490,11 +509,13 @@ function update10mBadge(cardId) {
   if(ph==='pullback') document.getElementById('ph1').className=`phase-step ${bull?'active-bear':'active-bull'}`;
   if(ph==='trigger')  document.getElementById('ph2').className='phase-step active-trigger';
   if(ph==='hold')     document.getElementById('ph3').className=`phase-step ${bull?'active-bull':'active-bear'}`;
+  if(ph==='exit')     document.getElementById('ph4').className='phase-step active-trigger';
   if(reg==='notrade') { zb.className='zone-badge zb-wait'; txt.textContent='2H no-trade zone — 10M irrelevant'; return; }
-  if(ph==='trend')    { card.classList.add(bull?'bull-card':'bear-card'); zb.className=`zone-badge ${bull?'zb-bull':'zb-bear'}`; txt.textContent=bull?'Trending ↑ — wait for 10M to fall to ~0':'Trending ↓ — wait for 10M to rally to ~100'; }
-  else if(ph==='pullback'){ zb.className='zone-badge zb-none'; txt.textContent=bull?'10M near 0 — pullback live, watch for reversal':'10M near 100 — rally live, watch for rollover'; }
-  else if(ph==='trigger') { card.classList.add('warn-card'); zb.className='zone-badge zb-none'; txt.textContent=bull?'🎯 TRIGGER — All crossed above 25, ENTER CE':'🎯 TRIGGER — All crossed below 75, ENTER PE'; }
-  else if(ph==='hold')    { card.classList.add(bull?'bull-card':'bear-card'); zb.className=`zone-badge ${bull?'zb-bull':'zb-bear'}`; txt.textContent=bull?'Holding CE — watch for first Bees to diverge ↓':'Holding PE — watch for first Bees to diverge ↑'; }
+  if(ph==='trend')         { card.classList.add(bull?'bull-card':'bear-card'); zb.className=`zone-badge ${bull?'zb-bull':'zb-bear'}`; txt.textContent=bull?'Trending ↑ — wait for 10M to fall to ~0':'Trending ↓ — wait for 10M to rally to ~100'; }
+  else if(ph==='pullback') { zb.className='zone-badge zb-none'; txt.textContent=bull?'10M near 0 — pullback live, watch for reversal':'10M near 100 — rally live, watch for rollover'; }
+  else if(ph==='trigger')  { card.classList.add('warn-card'); zb.className='zone-badge zb-none'; txt.textContent=bull?'🎯 TRIGGER — All crossed above 25, ENTER CE':'🎯 TRIGGER — All crossed below 75, ENTER PE'; }
+  else if(ph==='hold')     { card.classList.add(bull?'bull-card':'bear-card'); zb.className=`zone-badge ${bull?'zb-bull':'zb-bear'}`; txt.textContent=bull?'Holding CE — watching for first Bees to diverge ↓':'Holding PE — watching for first Bees to diverge ↑'; }
+  else if(ph==='exit')     { card.classList.add('warn-card'); zb.className='zone-badge zb-none'; txt.textContent=bull?'🚨 EXIT NOW — Bees diverging ↓, close CE immediately':'🚨 EXIT NOW — Bees diverging ↑, close PE immediately'; }
 }
 
 // ── REGIME BANNER ────────────────────────────────────────
@@ -569,7 +590,12 @@ function updateGate() {
   const allPass = gates.every(g=>g.ok==='pass');
   card.className = 'card';
 
-  if(tc>=1) {
+  // EXIT overrides everything — always show if divergence detected
+  if(ph==='exit') {
+    sig.className='entry-signal es-exit';
+    sig.textContent=bull?'🚨 EXIT CE NOW — First Bees diverging down':'🚨 EXIT PE NOW — First Bees diverging up';
+    card.classList.add('warn-card');
+  } else if(tc>=1) {
     sig.className='entry-signal es-exit'; sig.textContent='🚫 1 TRADE DONE — SIT OUT REST OF DAY';
   } else if(reg==='notrade') {
     sig.className='entry-signal es-notrade'; sig.textContent='⚠ NO-TRADE ZONE — PROTECT CAPITAL';
