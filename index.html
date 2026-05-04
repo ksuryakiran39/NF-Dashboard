@@ -215,8 +215,8 @@ document.write('<link rel="manifest" href="'+murl+'">');
 <!-- TOP BAR -->
 <div class="topbar">
   <div>
-    <div class="brand">⚡ Nifty Command Center <span style="font-size:8px;opacity:0.5;margin-left:4px">v3</span></div>
-    <div class="brand-sub">Regime-Filtered Exhaustion Reversal · 2H+10M Bees</div>
+    <div class="brand">⚡ Nifty Command Center <span style="font-size:8px;opacity:0.5;margin-left:4px">v4</span></div>
+    <div class="brand-sub">70/30 Regime · One Trade · Exhaustion Reversal</div>
   </div>
   <div style="text-align:right">
     <div class="clock" id="clock">--:--:--</div>
@@ -240,9 +240,9 @@ document.write('<link rel="manifest" href="'+murl+'">');
     <span id="zb-2h-text">Awaiting values</span>
   </div>
   <div style="margin-top:8px;font-size:9px;color:var(--muted);line-height:1.7">
-    <span style="color:var(--bull)">Bull:</span> all&gt;75 &nbsp;·&nbsp;
-    <span style="color:var(--bear)">Bear:</span> all&lt;40 &nbsp;·&nbsp;
-    <span style="color:var(--warn)">No-trade:</span> any 40–75
+    <span style="color:var(--bull)">Bull:</span> all&gt;70 &nbsp;·&nbsp;
+    <span style="color:var(--bear)">Bear:</span> all&lt;30 &nbsp;·&nbsp;
+    <span style="color:var(--warn)">No-trade:</span> any 30–70
   </div>
 </div>
 
@@ -334,7 +334,7 @@ document.write('<link rel="manifest" href="'+murl+'">');
   <button class="add-btn" onclick="openModal()">+ Log Trade</button>
   <div style="margin-top:8px;font-size:9px;color:var(--muted);line-height:1.7">
     Exit: <span style="color:var(--bull)">First 10M Bees diverges → exit immediately.</span>
-    Max 2 trades. No entries after 2:15 PM.
+    1 trade per day only. No entries after 2:15 PM.
   </div>
 </div>
 
@@ -413,8 +413,8 @@ const S = { b2h:[50,50,50], b10m:[50,50,50], trades:[], checks:Array(7).fill(fal
 const BEES = ['NiftyBees','BankBees','MID150Bees'];
 
 // ── HELPERS ───────────────────────────────────────────────
-const beeColor = v => v>75?'var(--bull)':v<25?'var(--bear)':v>=40&&v<=75?'var(--warn)':'var(--sub)';
-const regime2h = v => v.every(x=>x>75)?'bull':v.every(x=>x<40)?'bear':'notrade';
+const beeColor = v => v>70?'var(--bull)':v<30?'var(--bear)':v>=30&&v<=70?'var(--warn)':'var(--sub)';
+const regime2h = v => v.every(x=>x>70)?'bull':v.every(x=>x<30)?'bear':'notrade';
 function phase10m(vals, reg) {
   if(reg==='notrade') return 'na';
   const avg = vals.reduce((a,b)=>a+b,0)/3;
@@ -466,13 +466,13 @@ function update2hBadge(cardId) {
   card.className = 'card';
   if(reg==='bull') {
     card.classList.add('bull-card'); zb.className='zone-badge zb-bull';
-    dot.style.background='var(--bull)'; txt.textContent='✓ BULL REGIME — All Bees > 75';
+    dot.style.background='var(--bull)'; txt.textContent='✓ BULL REGIME — All Bees > 70';
   } else if(reg==='bear') {
     card.classList.add('bear-card'); zb.className='zone-badge zb-bear';
-    dot.style.background='var(--bear)'; txt.textContent='✓ BEAR REGIME — All Bees < 40';
+    dot.style.background='var(--bear)'; txt.textContent='✓ BEAR REGIME — All Bees < 30';
   } else {
     card.classList.add('warn-card'); zb.className='zone-badge zb-none';
-    dot.style.background='var(--warn)'; txt.textContent='⊘ NO-TRADE ZONE — Any Bees 40–75';
+    dot.style.background='var(--warn)'; txt.textContent='⊘ NO-TRADE ZONE — Any Bees 30–70';
   }
 }
 
@@ -511,9 +511,9 @@ function updateRegimeBanner() {
     banner.className='regime-banner regime-bear';
     txt.textContent='🔴 BEAR REGIME — Wait for 10M to rally to ~100, then cross below 75 → enter PE';
     tag.textContent='PE DAY';
-  } else if(S.b2h.some(v=>v>=40&&v<=75)) {
+  } else if(S.b2h.some(v=>v>=30&&v<=70)) {
     banner.className='regime-banner regime-none';
-    txt.textContent='⚠ NO-TRADE ZONE — Bees 40–75. Sit out. Protect capital.';
+    txt.textContent='⚠ NO-TRADE ZONE — Bees 30–70. Sit out. Protect capital.';
     tag.textContent='NO TRADE';
   } else {
     banner.className='regime-banner regime-wait';
@@ -534,10 +534,10 @@ function updateGate() {
   const gates = [];
 
   if(reg==='notrade') {
-    gates.push({ok:'block', text:'2H Bees in no-trade zone (40–75) — no edge today'});
-    gates.push({ok:'block', text:'Wait for all Bees above 75 (bull) or below 40 (bear)'});
+    gates.push({ok:'block', text:'2H Bees in no-trade zone (30–70) — no edge today'});
+    gates.push({ok:'block', text:'Wait for all Bees above 70 (bull) or below 30 (bear)'});
   } else {
-    gates.push({ok:'pass', text:`2H Regime: ${reg==='bull'?'BULL — all >75':'BEAR — all <40'} ✓`});
+    gates.push({ok:'pass', text:`2H Regime: ${reg==='bull'?'BULL — all >70':'BEAR — all <30'} ✓`});
     const phOk = ph==='pullback'||ph==='trigger'||ph==='hold';
     const trigOk = ph==='trigger'||ph==='hold';
     if(reg==='bull') {
@@ -551,8 +551,8 @@ function updateGate() {
       const lvlOk = !isNaN(peLvl)&&peLvl>0 && peStrike.length>0;
       gates.push({ok:lvlOk?'pass':'fail', text:lvlOk?`TradCafe PE: ${peStrike} @ ${peLvl} ✓`:'TradCafe PE strike + level not entered'});
     }
-    if(tc>=2) gates.push({ok:'block', text:'Max 2 trades reached — sit out rest of day'});
-    else gates.push({ok:'pass', text:`Trade count: ${tc}/2 ✓`});
+    if(tc>=1) gates.push({ok:'block', text:'Max 1 trade reached — system allows 1 trade per day only — sit out rest of day'});
+    else gates.push({ok:'pass', text:`Trade count: ${tc}/1 ✓`});
   }
 
   const container = document.getElementById('gate-items');
@@ -569,8 +569,8 @@ function updateGate() {
   const allPass = gates.every(g=>g.ok==='pass');
   card.className = 'card';
 
-  if(tc>=2) {
-    sig.className='entry-signal es-exit'; sig.textContent='🚫 MAX TRADES — SIT OUT REST OF DAY';
+  if(tc>=1) {
+    sig.className='entry-signal es-exit'; sig.textContent='🚫 1 TRADE DONE — SIT OUT REST OF DAY';
   } else if(reg==='notrade') {
     sig.className='entry-signal es-notrade'; sig.textContent='⚠ NO-TRADE ZONE — PROTECT CAPITAL';
   } else if(allPass && reg==='bull') {
@@ -593,7 +593,7 @@ function updateGate() {
 
 // ── CHECKLIST ────────────────────────────────────────────
 const CHECKS = [
-  'Check 2H Bees. All >75 = Bull day. All <40 = Bear day. Any 40–75 = No trade.',
+  'Check 2H Bees. All >70 = Bull day. All <30 = Bear day. Any 30–70 = No trade.',
   'Watch TradCafe YouTube. Note CE strike + entry level. Note PE strike + entry level.',
   'Enter TradCafe levels in the fields above before 9:20 AM.',
   'Set 2H Bees values. Confirm regime banner shows CE or PE day.',
@@ -631,7 +631,7 @@ function renderLog() {
       <button class="del-x" onclick="delTrade(${i})">✕</button>`;
     area.appendChild(row);
   });
-  document.getElementById('log-summary').innerHTML=`<div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:6px 0;margin-top:4px;border-top:1px solid var(--border);color:${pnl>=0?'var(--bull)':'var(--bear)'}">Day P&L: ${pnl>=0?'+':''}₹${pnl.toLocaleString()} · ${S.trades.length}/2 trades</div>`;
+  document.getElementById('log-summary').innerHTML=`<div style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:6px 0;margin-top:4px;border-top:1px solid var(--border);color:${pnl>=0?'var(--bull)':'var(--bear)'}">Day P&L: ${pnl>=0?'+':''}₹${pnl.toLocaleString()} · ${S.trades.length}/1 trade</div>`;
 }
 function openModal() { document.getElementById('modal').classList.add('show'); }
 function closeModal() { document.getElementById('modal').classList.remove('show'); }
